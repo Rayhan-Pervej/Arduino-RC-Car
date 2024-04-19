@@ -1,155 +1,128 @@
-#include <SoftwareSerial.h>
-#include <Servo.h>
+//By tech with harsh 
+//It takes a lot of effort and time to develop such code so please subscribe my channel and share it.
+#include <AFMotor.h>
+#include <Servo.h>   
+#define light A0
+#define back_light A1
+#define buzz A2
+#define ex A3
+Servo name_servo;               // Define any servo name
 
-// Motor control pins
-#define IN3 12
-#define IN4 11
-#define ENA 3
-#define IN1 9
-#define IN2 10
-#define ENB 5
+int servo_position = 0 ;
+AF_DCMotor motor1(1, MOTOR12_1KHZ); 
+AF_DCMotor motor4(4, MOTOR34_1KHZ);
+AF_DCMotor motor2(2, MOTOR12_1KHZ); 
+AF_DCMotor motor3(3, MOTOR34_1KHZ);
 
-// Bluetooth module pins
-#define BT_TX 1 // Connect to the RX pin of the Bluetooth module
-#define BT_RX 0 // Connect to the TX pin of the Bluetooth module
+int Speed = 230;
 
-// Define Bluetooth commands for motor control
-#define FORWARD 'F'
-#define BACKWARD 'B'
-#define STOP 'S'
-#define LEFT 'L'
-#define RIGHT 'R'
-#define FORWARD_LEFT 'G'
-#define FORWARD_RIGHT 'I'
-
-// Create a SoftwareSerial object to communicate with the Bluetooth module
-SoftwareSerial bluetooth(BT_RX, BT_TX);
-
-// Create a Servo object
-Servo name_servo;
-
-void setup()
-{
-  // Motor setup
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
-  pinMode(ENA, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(ENB, OUTPUT);
-
-  // Servo setup
-  name_servo.attach(6); // Attaching the servo to pin 6
-
-  // Initialize serial communication with a baud rate of 9600
+char value;
+void setup() {
+  name_servo.attach (10); 
   Serial.begin(9600);
+  motor1.setSpeed(240);
+  motor4.setSpeed(240);
+  motor2.setSpeed(240);
+  motor3.setSpeed(240);
+  pinMode(light, OUTPUT);
+  pinMode(back_light , OUTPUT);
+  pinMode(buzz, OUTPUT);
+  pinMode(ex, OUTPUT);
 
-  // Initialize SoftwareSerial communication with a baud rate of 9600
-  bluetooth.begin(9600);
 }
-
-void loop()
-{
-  // Motor control based on Bluetooth commands
-  if (bluetooth.available() > 0)
-  {
-    char command = bluetooth.read();
-    // Interpret Bluetooth commands
-    switch (command)
-    {
-    case FORWARD:
-      motor1Forward();
-      motor2Forward();
-      break;
-    case BACKWARD:
-      motor1Backward();
-      motor2Backward();
-      break;
-    case STOP:
-      motor1Stop();
-      motor2Stop();
-      break;
-    case LEFT:
-      turnLeft();
-      break;
-    case RIGHT:
-      turnRight();
-      break;
-    case FORWARD_LEFT:
-      motor1Forward();
-      motor2Forward();
-      turnLeft();
-      break;
-    case FORWARD_RIGHT:
-      motor1Forward();
-      motor2Forward();
-      turnRight();
-      break;
-    default:
-      break;
-    }
+ 
+void loop() {
+  if (Serial.available() > 0) {
+    value = Serial.read();
   }
-}
-
-// Motor 1 functions
-void motor1Forward()
-{
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENA, 255); // Full speed forward for motor 1
-}
-
-void motor1Backward()
-{
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  analogWrite(ENA, 255); // Full speed backward for motor 1
-}
-
-void motor1Stop()
-{
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  analogWrite(ENA, 0); // Stop motor 1
-}
-
-// Motor 2 functions
-void motor2Forward()
-{
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENB, 255); // Full speed forward for motor 2
-}
-
-void motor2Backward()
-{
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  analogWrite(ENB, 255); // Full speed backward for motor 2
-}
-
-void motor2Stop()
-{
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  analogWrite(ENB, 0); // Stop motor 2
-}
-
-// Servo control functions
-void turnLeft()
-{
-  for (int angle = 90; angle >= 65; angle--)
-  { // Decreasing angle from 90 to 65 (total 25 degree)
-    name_servo.write(angle);
-    delay(5); // Reduced delay for faster movement
+  if (value == 'W') {
+    digitalWrite(light,HIGH);
   }
-}
-
-void turnRight()
-{
-  for (int angle = 90; angle <= 115; angle++)
-  { // Increasing angle from 90 to 115 (total 25 degree)
-    name_servo.write(angle);
-    delay(5); // Reduced delay for faster movement
+  else if (value == 'w'){
+   digitalWrite(light,LOW);
   }
+if (value == 'U') {
+    digitalWrite(back_light,HIGH);
+  }
+  else if (value == 'u'){
+   digitalWrite(back_light,LOW);
+  }
+
+ if (value == 'V') {
+    digitalWrite(buzz,HIGH);
+  }
+  else if (value == 'v'){
+   digitalWrite(buzz,LOW);
+  }
+
+ if (value == 'X') {
+    digitalWrite(ex,HIGH);
+  }
+  else if (value == 'x'){
+   digitalWrite(ex,LOW);
+  }
+  if (value == 'F') {
+    motor4.run(FORWARD);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+    motor3.run(FORWARD);
+  } else if (value == 'B') {
+    motor4.run(BACKWARD);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD);
+    motor3.run(BACKWARD);
+  } else if (value == 'R') {
+    name_servo.write(60);
+  } else if (value == 'L') {
+    name_servo.write(160);
+  }
+  else if (value == 'I') {
+    name_servo.write(60);
+    motor4.run(FORWARD);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+    motor3.run(FORWARD);
+    delay(5);
+    name_servo.write(110);
+  } 
+  else if (value == 'G') {
+    name_servo.write(160);
+    motor4.run(FORWARD);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+    motor3.run(FORWARD);
+    delay(5);
+    name_servo.write(110);
+  } 
+  else if (value == 'J') {
+    name_servo.write(60);
+    motor4.run(BACKWARD);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD);
+    motor3.run(BACKWARD);
+    delay(5);
+    name_servo.write(110);
+  } 
+  else if (value == 'H') {
+    name_servo.write(160);
+    motor4.run(BACKWARD);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD);
+    motor3.run(BACKWARD);
+    delay(5);
+    name_servo.write(110);
+  }
+     
+
+   else{
+    name_servo.write(110);
+    motor4.run(RELEASE);
+    motor1.run(RELEASE);
+    motor2.run(RELEASE);
+    motor3.run(RELEASE);
+
+    
+   }
+
 }
+//All rights reserved.
